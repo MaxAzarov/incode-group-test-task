@@ -13,8 +13,30 @@ import { UserRole } from './types/user-roles';
 export class UsersService {
   constructor(private readonly entityManger: EntityManager) {}
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
     const usersRepository = this.entityManger.getRepository(User);
+
+    if (createUserDto.role === UserRole.Admin && createUserDto.headId) {
+      throw new BadRequestException({ error: 'Can not assign boss to admin' });
+    }
+
+    if (createUserDto.role === UserRole.User && !createUserDto.headId) {
+      throw new BadRequestException({
+        error: 'Can not create user without boss',
+      });
+    }
+
+    if (createUserDto.headId) {
+      const user = await usersRepository.findOne({
+        where: { id: createUserDto.headId },
+      });
+
+      if (user.role !== UserRole.Boss) {
+        throw new BadRequestException({
+          error: `Can not assign ${user.role} as boss`,
+        });
+      }
+    }
 
     return usersRepository.save(usersRepository.create(createUserDto));
   }
@@ -23,6 +45,10 @@ export class UsersService {
     const userRepository = this.entityManger.getRepository(User);
 
     const user = await userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new BadRequestException({ error: 'User does not exist' });
+    }
 
     if (user.role === UserRole.Admin) {
       return userRepository

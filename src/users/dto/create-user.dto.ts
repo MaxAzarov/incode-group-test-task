@@ -1,21 +1,20 @@
 import { Transform } from 'class-transformer';
-import { IsEnum } from 'class-validator';
-import { IsEmail, IsNotEmpty, MinLength, Validate } from 'class-validator';
-import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
+import { IsEnum, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { UserRole } from '../types/user-roles';
 
 export class CreateUserDto {
   @IsNotEmpty()
-  @IsEnum(UserRole)
-  type: UserRole;
+  @IsEnum(UserRole, { message: 'Invalid role' })
+  role!: UserRole;
 
   @Transform(({ value }) => value?.toLowerCase().trim())
   @IsNotEmpty()
-  @Validate(IsNotExist, ['User'], {
-    message: 'emailAlreadyExists',
-  })
   @IsEmail()
   email: string;
+
+  @IsOptional()
+  headId: number;
 
   @MinLength(6)
   password?: string;
