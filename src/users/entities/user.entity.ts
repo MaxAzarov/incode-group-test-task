@@ -10,18 +10,21 @@ import {
 } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
-import { UserType } from '../types/user-types';
+import { UserRole } from '../types/user-roles';
 
 @Entity()
 export class User extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: UserType, default: UserType.User })
-  type: UserType;
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
+  role: UserRole;
 
   @ManyToOne(() => User, { nullable: true })
   head: User | null;
+
+  @Column({ nullable: true })
+  headId: number | null;
 
   @Column()
   name: string;

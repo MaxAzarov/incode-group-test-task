@@ -26,7 +26,7 @@ export class AuthService {
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (isValidPassword) {
-      const payload = { email: user.email, id: user.id, type: user.type };
+      const payload = { email: user.email, id: user.id, role: user.role };
       const token = await this.jwtService.signAsync(payload);
 
       return { token, user: user };

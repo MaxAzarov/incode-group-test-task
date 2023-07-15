@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from './../auth/guards/jwt.guard';
 import {
   Controller,
   Get,
@@ -7,10 +8,15 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangeHeadDto } from './dto/change-head.dto';
+import { Roles } from 'src/utils/decorators/roles';
+import { RoleGuard } from 'src/auth/guards/role.guard';
+import { UserRole } from './types/user-roles';
 
 @Controller('users')
 export class UsersController {
@@ -23,8 +29,10 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @UseGuards(JwtAuthGuard)
+  findAll(@Request() request: Request) {
+    const userId = (request as any).user.id;
+    return this.usersService.findAll(userId);
   }
 
   @Get(':id')
@@ -32,8 +40,10 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Patch(':id/change-head')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(UserRole.Boss)
+  update(@Param('id') id: string, @Body() changeHeadDto: ChangeHeadDto) {
+    return this.usersService.updateUserHead(+id, changeHeadDto);
   }
 }
